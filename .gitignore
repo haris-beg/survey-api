@@ -1,3 +1,6 @@
+# Housekeeping folders created by the WebStorm IDE
+.idea
+
 # Logs
 logs
 *.log
