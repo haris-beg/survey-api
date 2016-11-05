@@ -1,0 +1,221 @@
+---
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "PAM Survey API"
+paths:
+  /v1/members/pamsurveys/getResults:
+    post:
+      summary: "Get PAM Survey Results for a member"
+      description: "Get the past PAM survey results for the member passed in the request\
+        \ body."
+      operationId: "getResults"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "member"
+        description: "(Subscriber ID + Member Suffix)"
+        required: true
+        schema:
+          $ref: "#/definitions/Member"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/SurveyResult"
+        404:
+          description: "Member not found"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Default"
+  /v1/members/pamsurveys/member:
+    post:
+      summary: "Add a member"
+      description: "Adds the member (passed in the request body) to the database.\
+        \ Also generates a non-PHI Id for the new member."
+      operationId: "addMember"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "member"
+        description: "(Subscriber ID + Member Suffix)"
+        required: true
+        schema:
+          $ref: "#/definitions/Member"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Member"
+        409:
+          description: "Member already exists"
+          schema:
+            $ref: "#/definitions/Member"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Default"
+  /v1/members/pamsurveys/result:
+    post:
+      summary: "Add new PAM survey result for existing member"
+      description: "Adds a new PAM survey result for the existing member passed in\
+        \ the request body."
+      operationId: "addResult"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "surveyResult"
+        description: "New Survey Result to be stored"
+        required: true
+        schema:
+          $ref: "#/definitions/SurveyResult"
+      responses:
+        200:
+          description: "OK"
+        404:
+          description: "Member not found"
+        405:
+          description: "Invalid input"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Default"
+  /v1/pamsurveys/{surveyName}:
+    get:
+      summary: "Get survey questions"
+      description: "Get the list of questions for the {surveyName}"
+      operationId: "getSurveyQuestions"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "surveyName"
+        in: "path"
+        description: "PAM10 or PAM6 or PAM13 (no spaces please)"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Survey"
+        404:
+          description: "Survey not found"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Default"
+definitions:
+  SurveyResult:
+    type: "object"
+    required:
+    - "CreateDateTime"
+    - "CreatedBy"
+    - "MemberId"
+    - "PAMLevel"
+    - "PAMScore"
+    - "Survey"
+    - "SurveyEnteredDate"
+    properties:
+      MemberId:
+        type: "string"
+      SurveyEnteredDate:
+        type: "integer"
+        format: "int32"
+      PAMLevel:
+        type: "integer"
+        format: "int32"
+      PAMScore:
+        type: "number"
+        format: "float"
+      Survey:
+        $ref: "#/definitions/Survey"
+      Answers:
+        type: "array"
+        items:
+          $ref: "#/definitions/Answer"
+      CreatedBy:
+        type: "string"
+      CreateDateTime:
+        type: "string"
+        format: "date-time"
+  Survey:
+    type: "object"
+    required:
+    - "SurveyName"
+    - "SurveyVersion"
+    properties:
+      SurveyName:
+        type: "string"
+      SurveyVersion:
+        type: "string"
+      CreateDateTime:
+        type: "string"
+        format: "date-time"
+      LastUpdateDateTime:
+        type: "string"
+        format: "date-time"
+      Questions:
+        type: "array"
+        items:
+          $ref: "#/definitions/Question"
+  Question:
+    type: "object"
+    required:
+    - "ID"
+    - "Verbiage"
+    properties:
+      ID:
+        type: "string"
+      Verbiage:
+        type: "string"
+  Answer:
+    type: "object"
+    required:
+    - "AnswerCode"
+    - "ID"
+    properties:
+      ID:
+        type: "string"
+      AnswerCode:
+        type: "string"
+      AnswerText:
+        type: "string"
+  Member:
+    type: "object"
+    required:
+    - "MemberId"
+    properties:
+      MemberId:
+        type: "string"
+      NonPhiId:
+        type: "integer"
+        format: "int32"
+      CreatedBy:
+        type: "string"
+      CreateDateTime:
+        type: "string"
+        format: "date-time"
+  Error:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      message:
+        type: "string"
+      fields:
+        type: "string"
